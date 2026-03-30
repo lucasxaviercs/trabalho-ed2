@@ -1,5 +1,5 @@
-#ifndef REGISTRO_H
-#define REGISTRO_H
+#ifndef STRUCTS_H
+#define STRUCTS_H
 
 #include <stdio.h>
 
@@ -12,7 +12,7 @@ typedef struct {
     int proxRRN; // próximo RRN disponível
     int nroEstacoes; // indica a quantidade de estações diferentes no arquivo de dados
     int nroParesEstacao; // indica a quantidade de pares (codEstacao, codProxEstacao) 
-} Cabecalho;
+} Header;
 
 typedef struct {
     char removido; // indica se o registro foi logicamente removido ou não
