@@ -50,8 +50,7 @@ static void PreencherComLixoBIN(FILE *arquivoBIN, int espacoUtilizado, int taman
     }
 }
 
-Header InicializarCabecalho(FILE *arquivoCSV){
-    Header cabecalho;
+void IgnorarLinhaZeroCSV(FILE *arquivoCSV){
     char *buffer =  malloc(256 * sizeof(char));
     if(buffer == NULL){
         printf("Erro na alocação de memória!\n");
@@ -68,8 +67,13 @@ Header InicializarCabecalho(FILE *arquivoCSV){
     
     free(buffer);
     buffer = NULL;
+}
 
-    // Inicialização do cabeçalho do arquivo binário
+
+Header InicializarCabecalho(){
+    Header cabecalho;
+
+    // Inicialização do cabeçalho na memória primária (RAM)
     cabecalho.status = '0'; // Para quando abrir para escrita estar inconsistente
     cabecalho.topo = -1; // Não há registros logicamente removidos
     cabecalho.proxRRN = 0; // O próximo RRN disponível deve ser iniciado com o valor 0

@@ -3,9 +3,13 @@
 #include "structs.h"
 #include "utils.h"
 
-Header InicializarCabecalho(FILE *arquivoCSV);
+void IgnorarLinhaZeroCSV(FILE *arquivoCSV);
+
+Header InicializarCabecalho();
 
 Header LerCabecalhoBIN(FILE *arquivoBIN, const Header cabecalho);
+
+Registro LerRegistroBIN(FILE *arquivoBIN, Registro registroDados);
 
 Registro LerRegistroCSV(FILE *arquivoCSV, Registro registroDados);
 

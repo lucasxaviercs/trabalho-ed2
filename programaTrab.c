@@ -8,19 +8,25 @@ int main(int argc, char *argv[]) {
     int funcionalidade = atoi(argv[1]);
 
     switch (funcionalidade) {
-        case 1: 
-            printf("Funcionalidade 1 selecionada.\n");
+        case CREATE_TABLE: 
+            CreateTable(argv[2], argv[3]);
             break;
-        case 2:
-            printf("Funcionalidade 2 selecionada.\n");
+
+        case SELECT_FROM:
+            SelectFrom(argv[2]);
             break;
-        case 3:
+
+        case SELECT_WHERE:
             printf("Funcionalidade 3 selecionada.\n");
             break;
-        case 4:
+
+        case RECUPERACAO_RRN:
+        {
             int RRN = atoi(argv[3]);
             RecuperacaoRRN(argv[2], RRN);
             break;
+        }
+        
         default:
             printf("Funcionalidade inválida.\n");
             break;

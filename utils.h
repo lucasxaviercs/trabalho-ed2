@@ -32,7 +32,11 @@ void RegistrarParUnico(ControlePares *controlePares, int codigoEstacaoOrigem, in
 
 void LiberarControlePares(ControlePares *controlePares);
 
+void ImprimirRegistro(const Registro *registroDados);
+
 void MensagemErro();
+
+void MensagemRegistroNaoEncontrado();
 
 char VerificaEOF(FILE *f);
 

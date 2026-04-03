@@ -12,8 +12,8 @@
 
 void CreateTable(char *arquivoEntrada, char *arquivoSaida);
 
-void SelectFrom(char *arquivoEntrada, char *arquivoSaida);
+void SelectFrom(char *arquivoEntrada);
 
 void SelectWhere(char *arquivoEntrada, char *arquivoSaida);
 
-void RecuperacaoRRN(char *arquivoEntrada, char *arquivoSaida);
+void RecuperacaoRRN(char *arquivoEntrada, int RRN);
