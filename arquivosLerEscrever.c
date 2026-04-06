@@ -1,7 +1,19 @@
+// FUNÇÕES AUXILIARES PARA LEITURA E ESCRITA DE REGISTROS
 #include "arquivosLerEscrever.h"
 
 #define SEPARADOR_CAMPOS ","
 
+// ----- LEITURA DO CSV -----
+
+// Essa função ignora a primeira linha do csv que mostra os nomes dos campos, de forma que a leitura comece a partir dos dados de fato
+void IgnorarLinhaZeroCSV(FILE *arquivoCSV){
+    char buffer[256];
+    if(fgets(buffer, 256, arquivoCSV) == NULL){
+        // MENSAGEM EXIGIDA quando houver falha no processamento de algum arquivo
+        MensagemErro();
+        exit(1);
+    }
+}
 
 static int LerCampoFixo(char **linha){
     char *campo = strsep(linha, SEPARADOR_CAMPOS);
@@ -23,56 +35,44 @@ static char *LerCampoVariavel(char **linha){
     return nome;
 }
 
-static int EscreverStringVariavelBIN(FILE *arquivoBIN, int tamanho, const char *string){
-    int espacoUtilizado = 0;
-    
-    // Escreve o indicador de tamanho (4 bytes) primeiro
-    fwrite(&tamanho, sizeof(int), 1, arquivoBIN);
-    espacoUtilizado += sizeof(int);
-    
-    // Se o tamanho for maior que 0, escreve a string (sem o '\0')
-    if (tamanho > 0 && string != NULL) {
-        fwrite(string, sizeof(char), tamanho, arquivoBIN);
-        espacoUtilizado += tamanho;
+// Essa função lê o arquivo CSV e preenche uma struct Registro com os dados lidos
+void LerRegistroCSV(FILE *arquivoCSV, Registro *registroDados){
+    char buffer[512];
+    if(fgets(buffer, 512, arquivoCSV) == NULL){
+        registroDados->removido = '1';
+        return;
     }
-    
-    return espacoUtilizado;
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+
+    // PREVENÇÃO
+    if(strlen(buffer) == 0){
+        registroDados->removido = '1';
+        return;
+    }
+
+    char *linha = buffer;
+
+    registroDados->removido = '0';
+    registroDados->proximo = -1;
+
+    registroDados->codEstacao = LerCampoFixo(&linha);
+    registroDados->nomeEstacao = LerCampoVariavel(&linha);
+    registroDados->tamNomeEstacao = (registroDados->nomeEstacao == NULL) ? 0 : strlen(registroDados->nomeEstacao);
+
+    registroDados->codLinha = LerCampoFixo(&linha);
+    registroDados->nomeLinha = LerCampoVariavel(&linha);
+    registroDados->tamNomeLinha = (registroDados->nomeLinha == NULL) ? 0 : strlen(registroDados->nomeLinha);
+
+    registroDados->codProxEstacao = LerCampoFixo(&linha);
+    registroDados->distProxEstacao = LerCampoFixo(&linha);
+    registroDados->codLinhaIntegra = LerCampoFixo(&linha);
+    registroDados->codEstIntegra = LerCampoFixo(&linha);
 }
 
-static void PreencherComLixoBIN(FILE *arquivoBIN, int espacoUtilizado, int tamanhoTotal){
-    char lixo = '$';
-    int bytesRestantes = tamanhoTotal - espacoUtilizado;
-    
-    for (int i = 0; i < bytesRestantes; i++){
-        fwrite(&lixo, sizeof(char), 1, arquivoBIN);
-    }
-}
 
-void IgnorarLinhaZeroCSV(FILE *arquivoCSV){
-    char buffer[256];
-    if(fgets(buffer, 256, arquivoCSV) == NULL){
-        // MENSAGEM EXIGIDA quando houver falha no processamento de algum arquivo
-        MensagemErro();
-        exit(1);
-    }
-}
+// ----- LEITURA DO ARQUIVO BINÁRIO -----
 
-
-Header *InicializarCabecalho(){
-    Header *cabecalho = malloc(sizeof(Header));
-
-    if (cabecalho != NULL){
-        // Inicialização do cabeçalho na memória primária (RAM)
-        cabecalho->status = '0'; // Para quando abrir para escrita estar inconsistente
-        cabecalho->topo = -1; // Não há registros logicamente removidos
-        cabecalho->proxRRN = 0; // O próximo RRN disponível deve ser iniciado com o valor 0
-        cabecalho->nroEstacoes = 0; // Indica a quantidade de estações
-        cabecalho->nroParesEstacao = 0; // Indica a quantidade de pares
-    }
-    
-    return cabecalho;
-}
-
+// As funções LerCabecalhoBIN e LerRegistroBIN leem o cabecalho e os registros de um arquivo BIN e preenchem as structs
 void LerCabecalhoBIN(FILE *arquivoBIN, Header *cabecalho){
     if(cabecalho == NULL) return;
 
@@ -139,39 +139,34 @@ void LerRegistroBIN(FILE *arquivoBIN, Registro *registroDados){
     }
 }
 
-void LerRegistroCSV(FILE *arquivoCSV, Registro *registroDados){
-    char buffer[512];
-    if(fgets(buffer, 512, arquivoCSV) == NULL){
-        registroDados->removido = '1';
-        return;
+// ESCRITA NO ARQUIVO BINÁRIO
+
+static int EscreverStringVariavelBIN(FILE *arquivoBIN, int tamanho, const char *string){
+    int espacoUtilizado = 0;
+    
+    // Escreve o indicador de tamanho (4 bytes) primeiro
+    fwrite(&tamanho, sizeof(int), 1, arquivoBIN);
+    espacoUtilizado += sizeof(int);
+    
+    // Se o tamanho for maior que 0, escreve a string (sem o '\0')
+    if (tamanho > 0 && string != NULL) {
+        fwrite(string, sizeof(char), tamanho, arquivoBIN);
+        espacoUtilizado += tamanho;
     }
-    buffer[strcspn(buffer, "\r\n")] = '\0';
-
-    // PREVENÇÃO
-    if(strlen(buffer) == 0){
-        registroDados->removido = '1';
-        return;
-    }
-
-    char *linha = buffer;
-
-    registroDados->removido = '0';
-    registroDados->proximo = -1;
-
-    registroDados->codEstacao = LerCampoFixo(&linha);
-    registroDados->nomeEstacao = LerCampoVariavel(&linha);
-    registroDados->tamNomeEstacao = (registroDados->nomeEstacao == NULL) ? 0 : strlen(registroDados->nomeEstacao);
-
-    registroDados->codLinha = LerCampoFixo(&linha);
-    registroDados->nomeLinha = LerCampoVariavel(&linha);
-    registroDados->tamNomeLinha = (registroDados->nomeLinha == NULL) ? 0 : strlen(registroDados->nomeLinha);
-
-    registroDados->codProxEstacao = LerCampoFixo(&linha);
-    registroDados->distProxEstacao = LerCampoFixo(&linha);
-    registroDados->codLinhaIntegra = LerCampoFixo(&linha);
-    registroDados->codEstIntegra = LerCampoFixo(&linha);
+    
+    return espacoUtilizado;
 }
 
+static void PreencherComLixoBIN(FILE *arquivoBIN, int espacoUtilizado, int tamanhoTotal){
+    char lixo = '$';
+    int bytesRestantes = tamanhoTotal - espacoUtilizado;
+    
+    for (int i = 0; i < bytesRestantes; i++){
+        fwrite(&lixo, sizeof(char), 1, arquivoBIN);
+    }
+}
+
+// As funções EscreverCabecalhoBIN e EscreverRegistroBIN escrevem o cabecalho e os registros em um arquivo BIN
 void EscreverCabecalhoBIN(FILE* arquivoBIN, const Header* cabecalho){
     // Garante estar no início do arquivo
     fseek(arquivoBIN, 0, SEEK_SET);
@@ -219,3 +214,25 @@ void EscreverRegistroBIN(FILE *arquivoBIN, const Registro *registroDados) {
     // Preenche o bytes não ocupados com lixo ('$')
     PreencherComLixoBIN(arquivoBIN, espacoUtilizado, TAM_REGISTRO);
 }
+
+// ----- OUTRAS FUNÇÕES AUXILIARES -----
+
+// A função InicializarCabecalho aloca memória e seta os campos com valores iniciais
+Header *InicializarCabecalho(){
+    Header *cabecalho = malloc(sizeof(Header));
+
+    if (cabecalho != NULL){
+        // Inicialização do cabeçalho na memória primária (RAM)
+        cabecalho->status = '0'; // Para quando abrir para escrita estar inconsistente
+        cabecalho->topo = -1; // Não há registros logicamente removidos
+        cabecalho->proxRRN = 0; // O próximo RRN disponível deve ser iniciado com o valor 0
+        cabecalho->nroEstacoes = 0; // Indica a quantidade de estações
+        cabecalho->nroParesEstacao = 0; // Indica a quantidade de pares
+    }
+    
+    return cabecalho;
+}
+
+
+
+
