@@ -1,6 +1,9 @@
 #include "funcionalidades.h"
 
 
+/*Lê os registros de um arquivo CSV e constrói a "tabela" no formato de um arquivo binário.
+Tendo todo o controle de inicializar, contabilizar, atualizar os dados do cabeçalho e dos registros
+para realizar a gravação no arquivo binário*/
 void CreateTable(char *arquivoEntrada, char *arquivoSaida){
     // Abrindo arquivo CSV para leitura
     FILE *arquivoCSV = fopen(arquivoEntrada, "r");
@@ -76,6 +79,7 @@ void CreateTable(char *arquivoEntrada, char *arquivoSaida){
 
 }
 
+/*Lê o arquivo binário do começo ao fim para mostrar tudo para o usuário ao imprimir na tela.*/
 void SelectFrom(char *arquivoEntrada){
     // Abrindo arquivo BIN para leitura binária
     FILE *arquivoBIN = fopen(arquivoEntrada, "rb");
@@ -130,6 +134,8 @@ void SelectFrom(char *arquivoEntrada){
     fclose(arquivoBIN);
 }
 
+/*Faz uma busca personalizada usando critérios de busca (FILTROS) que o usuário passou.
+Verificando linha por linha e apenas imprimindo na tela se o registro convergir com os critérios exigidos.*/
 void SelectWhere(char *arquivoEntrada, int nroBuscas){
     // Abrindo arquivo BIN para leitura binária
     FILE *arquivoBIN = fopen(arquivoEntrada, "rb");
@@ -213,6 +219,7 @@ void SelectWhere(char *arquivoEntrada, int nroBuscas){
     fclose(arquivoBIN);
 }
 
+/*Por meio de cálculos envolvendo o RRN, é capaz de acessar direto o registro desejado.*/
 void RecuperacaoRRN(char *arquivoEntrada, int RRN){
     // Abertura do arquivo BIN para leitura
     FILE *arquivoBIN = fopen(arquivoEntrada, "rb");
